@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ViewEarn - Ultimate Streaming, Games & Earning</title>
+
+<style>
+:root {
+  --bg-color: #09090e;
+  --card-bg: rgba(20, 20, 28, 0.85);
+  --primary: #ff0055;
+  --primary-glow: rgba(255, 0, 85, 0.4);
+  --accent: #8b5cf6;
+  --text-main: #ffffff;
+  --text-muted: #9ca3af;
+  --border: rgba(255, 255, 255, 0.08);
+  --success: #10b981;
+  --warning: #f59e0b;
+}
+
+body.light-mode {
+  --bg-color: #f3f4f6;
+  --card-bg: #ffffff;
+  --text-main: #111827;
+  --text-muted: #6b7280;
+  --border: rgba(0, 0, 0, 0.1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+body {
+  background-color: var(--bg-color);
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(139, 92, 246, 0.12) 0%, transparent 35%),
+    radial-gradient(circle at 85% 85%, rgba(255, 0, 85, 0.12) 0%, transparent 35%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  padding-bottom: 90px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* SPLASH / LOADING SCREEN */
+#splashScreen {
+  position: fixed; inset: 0; background: #07070a; z-index: 999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.5s ease;
+}
+.loader-logo { font-size: 32px; font-weight: 900; color: #fff; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.loader-logo-icon { background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 6px 14px; border-radius: 12px; box-shadow: 0 0 20px var(--primary-glow); }
+.loader-bar { width: 160px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
+.loader-progress { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); animation: loadProgress 1.8s ease forwards; }
+
+@keyframes loadProgress { 0% { width: 0%; } 100% { width: 100%; } }
+
+header {
+  background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(15px);
+  position: sticky; top: 0; z-index: 100; padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+
+.back-btn {
+  background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+  color: var(--text-main); width: 36px; height: 36px; border-radius: 50%;
+  display: none; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; transition: 0.2s;
+}
+.back-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.logo { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+.logo-icon {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white; padding: 4px 10px; border-radius: 8px;
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+
+.container { max-width: 600px; margin: auto; padding: 15px; }
+
+.card {
+  background: var(--card-bg); backdrop-filter: blur(10px);
+  border-radius: 20px; padding: 20px; margin-bottom: 16px;
+  border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.balance-card {
+  background: linear-gradient(135deg, rgba(255, 0, 85, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+  text-align: center; border: 1px solid rgba(255, 0, 85, 0.3);
+}
+.points {
+  font-size: 42px; font-weight: 900;
+  background: linear-gradient(90deg, #ff0055, #10b981);
+  -webkit-background-clip: text; color: transparent; margin: 5px 0;
+}
+
+input, select {
+  width: 100%; padding: 14px; margin: 8px 0; background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border); border-radius: 12px; color: var(--text-main); font-size: 14px;
+}
+input:focus, select:focus { border-color: var(--primary); outline: none; }
+input:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+button {
+  border: none; border-radius: 25px; padding: 14px; font-size: 15px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  color: white; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;
+  box-shadow: 0 4px 15px var(--primary-glow); transition: 0.3s;
+}
+button:hover { transform: translateY(-2px); opacity: 0.95; }
+button:disabled { background: #333; color: #777; cursor: not-allowed; box-shadow: none; transform: none; }
+.secondary-btn { background: transparent; border: 1px solid var(--border); color: var(--text-main); box-shadow: none; }
+
+.video-container { width: 100%; border-radius: 16px; overflow: hidden; background: #000; margin-bottom: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+video { width: 100%; display: block; }
+
+.categories-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin: 15px 0; scrollbar-width: none; }
+.category-chip {
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 6px 14px;
+  border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; color: var(--text-muted);
+}
+.category-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: bold; }
+
+.video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-item {
+  background: rgba(255,255,255,0.03); border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--border); cursor: pointer; transition: 0.25s; position: relative;
+}
+.grid-item:hover, .grid-item.active-vid { border-color: var(--primary); transform: translateY(-2px); background: rgba(255,0,85,0.08); }
+.thumb-box { height: 95px; background: #1a1a24; position: relative; display: flex; align-items: center; justify-content: center; }
+.thumb-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.75); color: var(--success); font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: bold; }
+.play-btn-overlay { width: 32px; height: 32px; background: rgba(255,0,85,0.8); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
+.grid-info { padding: 10px; }
+.grid-title { font-size: 12px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* MINI GAME & WHEEL STYLING */
+.wheel-box { text-align: center; margin: 20px 0; }
+.wheel-display {
+  width: 120px; height: 120px; border-radius: 50%;
+  border: 4px solid var(--primary); margin: 0 auto 15px auto;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; background: rgba(255,255,255,0.05);
+  box-shadow: 0 0 20px var(--primary-glow); transition: transform 2s ease-out;
+}
+
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.link-row {
+  display: flex; align-items: center; justify-content: space-between; padding: 14px 0;
+  border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text-main); font-size: 14px;
+}
+.link-row:last-child { border-bottom: none; }
+.link-row:hover { color: var(--primary); }
+.link-row .chev { color: var(--text-muted); }
+.policy-text { font-size: 13px; line-height: 1.7; color: var(--text-muted); }
+.policy-text h4 { color: var(--text-main); margin: 16px 0 6px; font-size: 14px; }
+.policy-text h4:first-child { margin-top: 0; }
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; inset: 0; background-color: #333; transition: .3s; border-radius: 24px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+.nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(15px);
+  display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid var(--border);
+}
+.nav button { background: none; color: var(--text-muted); width: auto; margin: 0; font-size: 11px; flex: 1; box-shadow: none; }
+.nav button.active { color: var(--primary); font-weight: bold; }
+
+.page { display: none; }
+.page.active { display: block; }
+.alert { padding: 12px; border-radius: 10px; font-size: 13px; margin-top: 10px; text-align: center; display: none; }
+.error { background: rgba(255, 0, 0, 0.2); color: #ff6b6b; border: 1px solid #ff0000; display: block; }
+.success { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); display: block; }
+
+.verify-banner {
+  background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning);
+  color: var(--warning); padding: 12px 14px; border-radius: 12px; margin-bottom: 14px;
+  font-size: 13px; display: none;
+}
+.verify-banner.show { display: block; }
+.verify-banner .btn-row { display: flex; gap: 8px; margin-top: 8px; }
+.verify-banner button { margin-top: 0; padding: 8px; font-size: 12px; }
+
+.history-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.history-item:last-child { border-bottom: none; }
+.status-pill { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+.status-pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+.status-paid { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+.status-rejected { background: rgba(255, 0, 0, 0.2); color: #ff6b6b; }
+</style>
+</head>
+<body>
+
+<div id="splashScreen">
+  <div class="loader-logo"><span class="loader-logo-icon">▶</span> ViewEarn</div>
+  <div class="loader-bar"><div class="loader-progress"></div></div>
+</div>
+
+<header>
+  <div class="header-left">
+    <div class="back-btn" id="backBtn">←</div>
+    <div class="logo"><span class="logo-icon">▶</span> ViewEarn</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- AUTH PAGE -->
+  <div id="auth" class="page active">
+    <div class="card">
+      <h2 style="text-align:center; margin-bottom: 20px;">Sign In</h2>
+      <input type="text" id="fullName" placeholder="Full Name">
+      <input type="email" id="email" placeholder="Email" autocomplete="email">
+      <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+
+      <button id="loginBtn">Login</button>
+      <button id="registerBtn" class="secondary-btn">Create Account</button>
+      <button id="resetPassBtn" class="secondary-btn" style="border:none; margin-top:10px; font-size:12px; color:var(--text-muted);">Forgot Password?</button>
+
+      <div id="authAlert" class="alert"></div>
+    </div>
+  </div>
+
+  <!-- HOME / VIDEOS PAGE -->
+  <div id="home" class="page">
+
+    <div class="verify-banner" id="verifyBanner">
+      <span>Please verify your email. Verification is required before you can earn points.</span>
+      <div class="btn-row">
+        <button id="resendVerifyBtn" class="secondary-btn">Resend Email</button>
+        <button id="recheckVerifyBtn" class="secondary-btn">I've Verified - Recheck</button>
+      </div>
+    </div>
+
+    <div class="card balance-card">
+      <div style="color: var(--text-muted); font-size: 12px;">Total Balance</div>
+      <div class="points" id="userPoints">0</div>
+      <div style="color: var(--success); font-size: 12px;">★ 100 Points = $0.10</div>
+    </div>
+
+    <div class="card" id="offersPromo" style="cursor:pointer;">
+      <div style="font-weight:700; margin-bottom:4px;">💰 Earn faster with Offers &amp; Surveys</div>
+      <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Surveys and offers pay much more than videos or the daily spin. Tap to see what's available for you.</div>
+      <div style="background:rgba(255,255,255,0.08); border-radius:10px; height:8px; overflow:hidden;">
+        <div id="withdrawProgressBar" style="height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--accent)); transition:width 0.4s;"></div>
+      </div>
+      <div id="withdrawProgressText" style="font-size:11px; color:var(--text-muted); margin-top:6px;">0 / 5,000 points to your first withdrawal</div>
+    </div>
+
+    <div class="card">
+      <div class="video-container">
+        <video id="videoPlayer" controls controlsList="nodownload noplaybackrate" disablePictureInPicture></video>
+      </div>
+      <h3 id="videoTitle" style="margin-bottom: 5px; font-size: 16px;">Loading video...</h3>
+      <button id="claimRewardBtn" disabled>▶ Watch to Earn</button>
+      <div id="videoAlert" class="alert"></div>
+
+      <div class="categories-bar">
+        <div class="category-chip active">All</div>
+        <div class="category-chip">Trending</div>
+        <div class="category-chip">Music</div>
+        <div class="category-chip">Shorts</div>
+      </div>
+
+      <div class="video-grid" id="videoGrid"></div>
+    </div>
+  </div>
+
+  <!-- GAMES & SPIN PAGE -->
+  <div id="games" class="page">
+    <div class="card wheel-box">
+      <h2 style="margin-bottom:10px;">🎡 Daily Lucky Wheel</h2>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">One free spin per day - spin to win bonus points!</p>
+
+      <div class="wheel-display" id="wheelDisplay">🎁</div>
+      <button id="spinBtn">🌀 Spin Now</button>
+      <div id="wheelAlert" class="alert"></div>
+    </div>
+
+    <div class="card" style="text-align: center;">
+      <h3 style="margin-bottom: 10px;">👥 Refer Friends</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Earn 10% extra of everything your friends earn from Offers &amp; Surveys — for as long as they keep earning.</p>
+      <input type="text" id="refLink" readonly style="text-align:center;">
+      <button id="copyRefBtn" class="secondary-btn">📋 Copy Link</button>
+      <div id="refAlert" class="alert"></div>
+    </div>
+  </div>
+
+  <!-- OFFERS PAGE (real revenue: offerwall / surveys) -->
+  <div id="offers" class="page">
+    <div class="card">
+      <h2 style="margin-bottom: 6px;">💰 Offers &amp; Surveys</h2>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+        Complete surveys and offers below to earn points — this is the main way ViewEarn is funded, so rewards here are usually bigger than the video/spin rewards. Points are credited automatically a few minutes after an offer is confirmed complete; availability depends on your profile and location.
+      </p>
+      <div id="offerwallStatus" style="font-size:13px; color:var(--text-muted); text-align:center; padding:30px 0;">Loading offers…</div>
+      <iframe id="offerwallFrame" style="display:none; width:100%; min-height:600px; border:0; border-radius:12px;"></iframe>
+    </div>
+  </div>
+
+  <!-- PAYMENT PAGE -->
+  <div id="payment" class="page">
+    <div class="card">
+      <h2 style="margin-bottom: 10px;">💸 Withdraw Earnings</h2>
+      <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">For your security we never collect full card numbers — only a payment reference.</p>
+
+      <label style="font-size: 13px; color: var(--text-muted);">Where are you located?</label>
+      <select id="payRegion">
+        <option value="ET">🇪🇹 In Ethiopia</option>
+        <option value="INTL">🌍 Outside Ethiopia</option>
+      </select>
+
+      <label style="font-size: 13px; color: var(--text-muted);">Select Method:</label>
+      <select id="payMethod"></select>
+
+      <input type="text" id="payAccount" placeholder="PayPal email">
+      <input type="number" id="withdrawPoints" placeholder="Points to withdraw (minimum 5,000)" min="5000" step="1">
+
+      <button id="withdrawBtn">Submit Withdrawal</button>
+      <div id="payAlert" class="alert"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom: 10px;">Withdrawal History</h3>
+      <div id="withdrawHistory" style="font-size:13px; color:var(--text-muted);">No requests yet</div>
+    </div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div id="profile" class="page">
+    <div class="card">
+      <h2 style="margin-bottom: 15px;">⚙️ Settings & Profile</h2>
+
+      <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+        <p style="margin-bottom: 8px;">👤 <strong>Name:</strong> <span id="profName">-</span></p>
+        <p style="margin-bottom: 8px;">✉️ <strong>Email:</strong> <span id="profEmail">-</span></p>
+        <p>✅ <strong>Verification Status:</strong> <span id="profVerified">-</span></p>
+      </div>
+
+      <div class="setting-row">
+        <span>Light Theme</span>
+        <label class="switch">
+          <input type="checkbox" id="themeToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <span>Notifications</span>
+        <label class="switch">
+          <input type="checkbox" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <button id="changePassBtn" class="secondary-btn" style="margin-top:20px;">🔑 Change Password</button>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom: 6px;">About & Support</h3>
+      <div class="link-row" id="linkAbout"><span>ℹ️ About / How It Works</span><span class="chev">›</span></div>
+      <div class="link-row" id="linkHelp"><span>❓ Help & Support</span><span class="chev">›</span></div>
+      <div class="link-row" id="linkTerms"><span>📃 Terms of Service</span><span class="chev">›</span></div>
+      <div class="link-row" id="linkPrivacy"><span>📄 Privacy Policy</span><span class="chev">›</span></div>
+    </div>
+
+    <div class="card">
+      <button id="logoutBtn" class="secondary-btn" style="color:#ff6b6b; border-color:rgba(255,0,0,0.3);">Logout</button>
+      <button id="deleteAccountBtn" class="secondary-btn" style="color:#ff6b6b; border-color:rgba(255,0,0,0.3); margin-top:10px;">🗑️ Delete Account</button>
+      <div id="profileAlert" class="alert"></div>
+    </div>
+  </div>
+
+  <!-- ABOUT PAGE -->
+  <div id="about" class="page">
+    <div class="card policy-text">
+      <h2 style="color:var(--text-main); margin-bottom:14px; font-size:18px;">ℹ️ About ViewEarn</h2>
+      <h4>How points work</h4>
+      <p>You earn points by watching videos in the app and by spinning the daily lucky wheel (one free spin per day). Points convert to money at a fixed rate, shown on the Videos tab (currently 100 points = $0.10).</p>
+      <h4>How withdrawals work</h4>
+      <p>Once you have at least 5,000 points ($5), you can request a withdrawal from the Wallet tab. Requests are reviewed and paid out to the payment reference you provide; you can track the status of each request in your Withdrawal History.</p>
+      <h4>Referrals</h4>
+      <p>Share your referral link from the Games tab. When a friend signs up with your link and completes offers or surveys, you earn a 10% bonus on their offer earnings. Referral bonuses are paid on real completed offers only, not on sign-ups.</p>
+      <h4>Fair use</h4>
+      <p>Accounts found using automated tools, multiple fake accounts, or other abuse to generate points may be suspended and forfeit their balance.</p>
+    </div>
+  </div>
+
+  <!-- HELP PAGE -->
+  <div id="help" class="page">
+    <div class="card policy-text">
+      <h2 style="color:var(--text-main); margin-bottom:14px; font-size:18px;">❓ Help & Support</h2>
+      <h4>Why can't I earn points yet?</h4>
+      <p>You need to verify your email first. Check your inbox (and spam folder) for the verification link, then return to the Videos tab and tap "I've Verified - Recheck".</p>
+      <h4>Why is my spin button disabled?</h4>
+      <p>The lucky wheel allows one spin per day. It resets at midnight UTC.</p>
+      <h4>How long do withdrawals take?</h4>
+      <p>Withdrawal requests are reviewed manually and typically processed within a few business days. You'll see the status change from "pending" to "paid" in your Withdrawal History.</p>
+      <h4>My withdrawal was rejected — why?</h4>
+      <p>This usually means the payment reference you provided couldn't be verified. Double-check the email, phone number, or account details and submit a new request.</p>
+      <h4>Still need help?</h4>
+      <p>Contact us at <strong style="color:var(--text-main);">support@viewearn.app</strong> (replace with your real support address).</p>
+    </div>
+  </div>
+
+  <!-- TERMS PAGE -->
+  <div id="terms" class="page">
+    <div class="card policy-text">
+      <h2 style="color:var(--text-main); margin-bottom:14px; font-size:18px;">📃 Terms of Service</h2>
+      <p style="margin-bottom:10px;"><em>Last updated: [date] — this is a starting template, not legal advice. Have a lawyer review it before launch, especially for the payout and Ethiopia-specific payment terms.</em></p>
+      <h4>1. Eligibility</h4>
+      <p>You must be able to legally enter into this agreement in your jurisdiction and provide accurate registration information, including a verified email address.</p>
+      <h4>2. Points have no cash value until redeemed</h4>
+      <p>Points earned in the app are an internal unit of measure and are not currency. They can be redeemed for payouts only according to these terms and the posted conversion rate, which may change with notice.</p>
+      <h4>3. Withdrawals</h4>
+      <p>A minimum balance of 5,000 points ($5) is required to request a withdrawal. We may request additional verification before paying out a request and may decline requests that appear fraudulent or that violate these terms.</p>
+      <h4>4. Prohibited conduct</h4>
+      <p>Creating multiple accounts, using bots or scripts to generate views or spins, or otherwise circumventing the intended use of the app is prohibited and may result in suspension and forfeiture of points.</p>
+      <h4>5. Account suspension &amp; termination</h4>
+      <p>We may suspend or terminate accounts that violate these terms, with or without notice, and may withhold pending withdrawals connected to the violation.</p>
+      <h4>6. Limitation of liability</h4>
+      <p>The service is provided "as is." To the maximum extent permitted by law, we are not liable for indirect or consequential damages arising from use of the app.</p>
+      <h4>7. Changes</h4>
+      <p>We may update these terms from time to time; continued use of the app after changes take effect constitutes acceptance.</p>
+      <h4>8. Contact</h4>
+      <p>Questions about these terms: support@viewearn.app (replace with your real contact).</p>
+    </div>
+  </div>
+
+  <!-- PRIVACY PAGE -->
+  <div id="privacy" class="page">
+    <div class="card policy-text">
+      <h2 style="color:var(--text-main); margin-bottom:14px; font-size:18px;">📄 Privacy Policy</h2>
+      <p style="margin-bottom:10px;"><em>Last updated: [date] — this is a starting template, not legal advice. Have a lawyer review it for your jurisdiction (including any Ethiopia-specific data protection requirements) before launch.</em></p>
+      <h4>Information we collect</h4>
+      <p>Your name and email address at registration; your points balance and activity (videos watched, spins used); and, when you request a withdrawal, a payment reference (such as an email, phone number, or the last 4 digits of an account) — never a full card or bank account number.</p>
+      <h4>How we use it</h4>
+      <p>To operate your account, credit points, process withdrawal requests, verify your email, prevent fraud and abuse, and communicate with you about your account.</p>
+      <h4>Who we share it with</h4>
+      <p>Our infrastructure providers (Firebase/Google Cloud for authentication and data storage), our ad network (to serve and measure video ads), and our payment processor(s) (to send withdrawal payouts) — each only with the information needed to perform their role.</p>
+      <h4>Your rights</h4>
+      <p>You can review your profile information in Settings, and you can delete your account and profile data at any time from Settings → Delete Account (withdrawal and offer records may be kept as described under Data retention below). Contact support@viewearn.app for any other data request.</p>
+      <h4>Data retention</h4>
+      <p>We retain account and transaction records for as long as your account is active and as needed to resolve disputes, comply with legal obligations, and enforce our terms.</p>
+      <h4>Changes to this policy</h4>
+      <p>We may update this policy from time to time and will post the updated version here with a new "last updated" date.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAVIGATION -->
+<div class="nav" id="navBar" style="display:none;">
+  <button id="navHome" class="active"><span style="font-size:16px;">▶️</span><br><span>Videos</span></button>
+  <button id="navGames"><span style="font-size:16px;">🎡</span><br><span>Games</span></button>
+  <button id="navOffers"><span style="font-size:16px;">💰</span><br><span>Offers</span></button>
+  <button id="navPay"><span style="font-size:16px;">💸</span><br><span>Wallet</span></button>
+  <button id="navProfile"><span style="font-size:16px;">⚙️</span><br><span>Settings</span></button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification, reload
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, increment,
+  collection, addDoc, query, where, orderBy, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+
+// TODO: move these to environment-specific config / restrict by domain in the
+// Firebase console (Firebase web API keys are meant to be public, but you
+// must lock down access with Firestore Security Rules — see firestore.rules).
+const firebaseConfig = {
+  apiKey: "AIzaSyCHhn91qsEdpYHOg8bHY6962j-C7Xs0cNo",
+  authDomain: "viewearn-8c16a.firebaseapp.com",
+  projectId: "viewearn-8c16a",
+  storageBucket: "viewearn-8c16a.firebasestorage.app",
+  messagingSenderId: "837493642809",
+  appId: "1:837493642809:web:9420dc080a8431a22b1fe8"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const functions = getFunctions(app);
+const getOfferwallUrlFn = httpsCallable(functions, "getOfferwallUrl");
+const deleteMyAccountFn = httpsCallable(functions, "deleteMyAccount");
+let offerwallLoaded = false;
+
+// Splash Screen
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    const splash = document.getElementById("splashScreen");
+    splash.style.opacity = "0";
+    setTimeout(() => splash.style.display = "none", 500);
+  }, 1800);
+});
+
+// NOTE: These are placeholder demo clips. Replace this list with a real
+// rewarded-ad integration (e.g. Google Ad Manager / AdSense rewarded ads,
+// or an ad network SDK) so that watching a video is actually funded by ad
+// revenue rather than paid entirely out of pocket. See SETUP.md.
+const playlist = [
+  { id: 0, title: "Nature Stream 4K", reward: "+10 Points", url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" },
+  { id: 1, title: "Animation Video Demo", reward: "+10 Points", url: "https://www.w3schools.com/html/mov_bbb.mp4" },
+  { id: 2, title: "Short Clip Demo", reward: "+10 Points", url: "https://www.w3schools.com/html/movie.mp4" },
+  { id: 3, title: "Relaxing Ocean Waves", reward: "+10 Points", url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" }
+];
+
+const MIN_WITHDRAW_POINTS = 5000; // $5 — keep in sync with firestore.rules
+// Remember who invited this visitor (from a ?ref=... link) until they sign up.
+const refParam = new URLSearchParams(location.search).get("ref");
+if (refParam) localStorage.setItem("viewearn_ref", refParam);
+
+let currentVideoIdx = 0;
+let currentUser = null;
+let userData = { points: 0, name: "", lastSpinDate: null };
+let rewardClaimed = false;
+
+function showAlert(elemId, msg, isError = true) {
+  const el = document.getElementById(elemId);
+  el.className = `alert ${isError ? 'error' : 'success'}`;
+  el.innerText = msg;
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD, UTC-based
+}
+
+// Which page + nav button to return to when the back arrow is pressed.
+// Defaults to home; set explicitly before navigating into a sub-page
+// (About/Help/Terms/Privacy) reached from Settings.
+let backTarget = { pageId: "home", btnId: "navHome" };
+
+function switchTab(pageId, btnId) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+  document.getElementById(pageId).classList.add("active");
+  if (btnId) document.getElementById(btnId).classList.add("active");
+
+  const backBtn = document.getElementById("backBtn");
+  backBtn.style.display = (pageId === "home" || pageId === "auth") ? "none" : "flex";
+
+  if (pageId === "payment") renderWithdrawHistory();
+}
+
+// Top-level tabs reachable from the bottom nav: back always returns home.
+function switchMainTab(pageId, btnId) {
+  backTarget = { pageId: "home", btnId: "navHome" };
+  switchTab(pageId, btnId);
+}
+
+// Sub-pages reached from within Settings: back returns to Settings, and the
+// bottom nav keeps "Settings" highlighted since that's still the section
+// the user is in.
+function switchSubPage(pageId) {
+  backTarget = { pageId: "profile", btnId: "navProfile" };
+  switchTab(pageId, "navProfile");
+}
+
+document.getElementById("backBtn").addEventListener("click", () => switchTab(backTarget.pageId, backTarget.btnId));
+
+document.getElementById("linkAbout").addEventListener("click", () => switchSubPage("about"));
+document.getElementById("linkHelp").addEventListener("click", () => switchSubPage("help"));
+document.getElementById("linkTerms").addEventListener("click", () => switchSubPage("terms"));
+document.getElementById("linkPrivacy").addEventListener("click", () => switchSubPage("privacy"));
+
+document.getElementById("themeToggle").addEventListener("change", (e) => {
+  document.body.classList.toggle("light-mode", e.target.checked);
+});
+
+document.getElementById("changePassBtn").addEventListener("click", async () => {
+  if (!currentUser?.email) return;
+  try {
+    await sendPasswordResetEmail(auth, currentUser.email);
+    showAlert("profileAlert", "Password reset email sent!", false);
+  } catch (e) { showAlert("profileAlert", e.message); }
+});
+
+document.getElementById("deleteAccountBtn").addEventListener("click", async () => {
+  if (!currentUser) return;
+  const confirmed = confirm("Are you sure you want to delete your account? This cannot be undone and you will lose any remaining points.");
+  if (!confirmed) return;
+  try {
+    // Deletion runs server-side (see deleteMyAccount in functions/index.js).
+    await deleteMyAccountFn();
+    showAlert("profileAlert", "Account deleted.", false);
+    await signOut(auth).catch(() => {});
+  } catch (e) {
+    showAlert("profileAlert", e.message || "Could not delete the account. Please try again.");
+  }
+});
+
+// ---------- AUTH STATE ----------
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    document.getElementById("navBar").style.display = "flex";
+    await loadUserData(user.uid);
+    updateVerificationUI();
+    switchMainTab("home", "navHome");
+    renderVideoGrid();
+    loadVideo(0);
+    document.getElementById("refLink").value = `${location.origin}${location.pathname}?ref=${user.uid}`;
+  } else {
+    currentUser = null;
+    document.getElementById("navBar").style.display = "none";
+    switchTab("auth");
+  }
+});
+
+function updateVerificationUI() {
+  const verified = !!currentUser?.emailVerified;
+  document.getElementById("verifyBanner").classList.toggle("show", !verified);
+  document.getElementById("spinBtn").disabled = !verified;
+  document.getElementById("withdrawBtn").disabled = !verified;
+  document.getElementById("profVerified").innerText = verified ? "✅ Verified" : "⏳ Not verified";
+}
+
+document.getElementById("resendVerifyBtn").addEventListener("click", async () => {
+  if (!currentUser) return;
+  try {
+    await sendEmailVerification(currentUser);
+    showAlert("videoAlert", "Verification email sent!", false);
+  } catch (e) { showAlert("videoAlert", e.message); }
+});
+
+document.getElementById("recheckVerifyBtn").addEventListener("click", async () => {
+  if (!currentUser) return;
+  await currentUser.reload();
+  updateVerificationUI();
+  showAlert("videoAlert", currentUser.emailVerified ? "Verified! You can now earn points." : "Still not verified — check your inbox.", !currentUser.emailVerified);
+});
+
+async function loadUserData(uid) {
+  const userRef = doc(db, "users", uid);
+  const snap = await getDoc(userRef);
+  if (snap.exists()) {
+    userData = snap.data();
+  } else {
+    let fName = document.getElementById("fullName").value.trim() || "User";
+    userData = { points: 0, name: fName, lastSpinDate: null };
+    const ref = localStorage.getItem("viewearn_ref");
+    if (ref && ref !== uid) userData.referredBy = ref;
+    await setDoc(userRef, userData);
+    localStorage.removeItem("viewearn_ref");
+  }
+  document.getElementById("userPoints").innerText = userData.points || 0;
+  document.getElementById("profName").innerText = userData.name || "User";
+  document.getElementById("profEmail").innerText = currentUser.email;
+}
+
+function renderVideoGrid() {
+  const container = document.getElementById("videoGrid");
+  container.innerHTML = "";
+  playlist.forEach((vid, idx) => {
+    const item = document.createElement("div");
+    item.className = `grid-item ${idx === currentVideoIdx ? 'active-vid' : ''}`;
+    item.innerHTML = `
+      <div class="thumb-box">
+        <span class="thumb-badge">${vid.reward}</span>
+        <div class="play-btn-overlay">▶</div>
+      </div>
+      <div class="grid-info">
+        <div class="grid-title">${vid.title}</div>
+      </div>
+    `;
+    item.onclick = () => loadVideo(idx);
+    container.appendChild(item);
+  });
+}
+
+const video = document.getElementById("videoPlayer");
+const claimBtn = document.getElementById("claimRewardBtn");
+
+function updateClaimButtonLabel() {
+  if (rewardClaimed) {
+    claimBtn.innerText = "🎁 +10 Points Received";
+  } else if (!claimBtn.disabled) {
+    claimBtn.innerText = "🎁 Claim +10 Points";
+  } else {
+    claimBtn.innerText = "▶ Watch to Earn";
+  }
+}
+
+function loadVideo(idx) {
+  rewardClaimed = false;
+  currentVideoIdx = idx;
+  video.src = playlist[idx].url;
+  document.getElementById("videoTitle").innerText = playlist[idx].title;
+  claimBtn.disabled = true;
+  updateClaimButtonLabel();
+  renderVideoGrid();
+}
+
+video.addEventListener("timeupdate", () => {
+  if (video.duration && (video.currentTime / video.duration >= 0.95) && !rewardClaimed && currentUser?.emailVerified) {
+    claimBtn.disabled = false;
+    updateClaimButtonLabel();
+  }
+});
+
+claimBtn.addEventListener("click", async () => {
+  if (!currentUser || rewardClaimed || !currentUser.emailVerified) return;
+  claimBtn.disabled = true;
+
+  // NOTE: this write happens directly from the client, which means a
+  // motivated user could call this function repeatedly or forge the call
+  // via devtools. Once you deploy the Cloud Function in functions/index.js,
+  // replace this updateDoc call with a call to the `awardVideoPoints`
+  // callable function instead, and lock the `points` field down in
+  // firestore.rules so clients can no longer write it directly.
+  const userRef = doc(db, "users", currentUser.uid);
+  await updateDoc(userRef, { points: increment(10) });
+
+  userData.points = (userData.points || 0) + 10;
+  document.getElementById("userPoints").innerText = userData.points;
+  rewardClaimed = true;
+  updateClaimButtonLabel();
+  showAlert("videoAlert", "+10 Points Received!", false);
+});
+
+// ---------- LUCKY WHEEL (one spin per calendar day) ----------
+document.getElementById("spinBtn").addEventListener("click", async () => {
+  if (!currentUser || !currentUser.emailVerified) return;
+
+  if (userData.lastSpinDate === todayStr()) {
+    showAlert("wheelAlert", "You've already spun today — come back tomorrow!");
+    return;
+  }
+
+  const spinBtn = document.getElementById("spinBtn");
+  const wheelDisplay = document.getElementById("wheelDisplay");
+  spinBtn.disabled = true;
+
+  const rewards = [5, 15, 20, 50, 0, 10];
+  const won = rewards[Math.floor(Math.random() * rewards.length)];
+
+  wheelDisplay.style.transform = "rotate(1440deg)";
+
+  setTimeout(async () => {
+    wheelDisplay.style.transform = "rotate(0deg)";
+    wheelDisplay.innerText = `+${won}`;
+
+    const userRef = doc(db, "users", currentUser.uid);
+    // See the same server-side note as claimBtn above — move this to a
+    // callable function so the daily-limit check can't be bypassed client-side.
+    await updateDoc(userRef, {
+      points: increment(won),
+      lastSpinDate: todayStr()
+    });
+    userData.points = (userData.points || 0) + won;
+    userData.lastSpinDate = todayStr();
+    document.getElementById("userPoints").innerText = userData.points;
+
+    if (won > 0) {
+      showAlert("wheelAlert", `Congratulations! You won +${won} points!`, false);
+    } else {
+      showAlert("wheelAlert", "No luck this time — try again tomorrow!");
+    }
+    // Spin button stays disabled until tomorrow; re-enabling happens on next login/day.
+  }, 2000);
+});
+
+// ---------- REFERRAL ----------
+document.getElementById("copyRefBtn").addEventListener("click", () => {
+  const copyText = document.getElementById("refLink");
+  navigator.clipboard.writeText(copyText.value);
+  showAlert("refAlert", "Referral link copied!", false);
+});
+
+// ---------- AUTH HANDLERS ----------
+document.getElementById("registerBtn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  if (!email || !password) return showAlert("authAlert", "Please enter Email & Password");
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await sendEmailVerification(cred.user);
+    showAlert("authAlert", "Account created! Check your email to verify before you can earn points.", false);
+  } catch (e) { showAlert("authAlert", e.message); }
+});
+
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  if (!email || !password) return showAlert("authAlert", "Please enter Email & Password");
+  try { await signInWithEmailAndPassword(auth, email, password); }
+  catch (e) { showAlert("authAlert", e.message); }
+});
+
+document.getElementById("resetPassBtn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim();
+  if (!email) return showAlert("authAlert", "Please enter email first");
+  try { await sendPasswordResetEmail(auth, email); showAlert("authAlert", "Reset link sent!", false); }
+  catch (e) { showAlert("authAlert", e.message); }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", () => signOut(auth));
+
+// ---------- WITHDRAWAL ----------
+const payAccountPlaceholders = {
+  PayPal: "PayPal email",
+  Binance: "Binance email or Pay ID",
+  Telebirr: "Phone number (Telebirr)",
+  CBE: "Full name + last 4 digits only"
+};
+
+// PayPal can't be used with Ethiopian bank accounts, so payout methods depend on
+// where the user is: local mobile money/bank in Ethiopia, PayPal/crypto abroad.
+const methodsByRegion = {
+  ET: [["Telebirr", "📱 Telebirr"], ["CBE", "🏦 CBE (Commercial Bank of Ethiopia)"]],
+  INTL: [["PayPal", "🌐 PayPal"], ["Binance", "🚀 Binance Pay (USDT Crypto)"]]
+};
+
+function populateMethods(region) {
+  const select = document.getElementById("payMethod");
+  select.innerHTML = "";
+  methodsByRegion[region].forEach(([value, label]) => {
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = label;
+    select.appendChild(opt);
+  });
+  document.getElementById("payAccount").placeholder = payAccountPlaceholders[select.value];
+}
+
+document.getElementById("payRegion").addEventListener("change", (e) => populateMethods(e.target.value));
+document.getElementById("payMethod").addEventListener("change", (e) => {
+  document.getElementById("payAccount").placeholder = payAccountPlaceholders[e.target.value] || "Payment reference";
+});
+populateMethods("ET");
+
+document.getElementById("withdrawBtn").addEventListener("click", async () => {
+  if (!currentUser?.emailVerified) return showAlert("payAlert", "Please verify your email first.");
+
+  const method = document.getElementById("payMethod").value;
+  const acc = document.getElementById("payAccount").value.trim();
+  const pts = parseInt(document.getElementById("withdrawPoints").value, 10);
+
+  if (!acc || !pts) return showAlert("payAlert", "Please fill all details");
+  if (pts < MIN_WITHDRAW_POINTS) return showAlert("payAlert", "Minimum withdrawal is 5,000 points ($5)");
+  if (pts > (userData.points || 0)) return showAlert("payAlert", "Insufficient points");
+
+  try {
+    // IMPORTANT: `acc` should only ever be a reference (email, phone, or
+    // last-4-digits string) — never a full card/account number. The UI
+    // above restricts input to references, and MasterCard/VISA is disabled
+    // until a real payment processor (Stripe/PayPal Payouts) is wired up.
+    await addDoc(collection(db, "withdrawals"), {
+      userId: currentUser.uid, email: currentUser.email,
+      method, region: document.getElementById("payRegion").value, account: acc, points: pts,
+      status: "pending",
+      date: new Date().toISOString()
+    });
+
+    await updateDoc(doc(db, "users", currentUser.uid), { points: increment(-pts) });
+    userData.points -= pts;
+    document.getElementById("userPoints").innerText = userData.points;
+    document.getElementById("withdrawPoints").value = "";
+    document.getElementById("payAccount").value = "";
+    showAlert("payAlert", "Withdrawal Request Sent!", false);
+    renderWithdrawHistory();
+  } catch (e) { showAlert("payAlert", e.message); }
+});
+
+async function renderWithdrawHistory() {
+  if (!currentUser) return;
+  const el = document.getElementById("withdrawHistory");
+  try {
+    const q = query(
+      collection(db, "withdrawals"),
+      where("userId", "==", currentUser.uid),
+      orderBy("date", "desc")
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      el.innerHTML = "No requests yet";
+      return;
+    }
+    el.innerHTML = "";
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      const statusClass = d.status === "paid" ? "status-paid" : d.status === "rejected" ? "status-rejected" : "status-pending";
+      const row = document.createElement("div");
+      row.className = "history-item";
+      row.innerHTML = `
+        <span>${d.method} · ${d.points} pts</span>
+        <span class="status-pill ${statusClass}">${d.status || "pending"}</span>
+      `;
+      el.appendChild(row);
+    });
+  } catch (e) {
+    // Likely missing composite index for the query above the first time it
+    // runs — Firestore's console will give a direct link to create it.
+    el.innerHTML = "Unable to load history yet.";
+  }
+}
+
+// ---------- OFFERWALL (CPX Research) ----------
+async function loadOfferwall() {
+  const statusEl = document.getElementById("offerwallStatus");
+  const frame = document.getElementById("offerwallFrame");
+
+  if (!currentUser?.emailVerified) {
+    statusEl.innerText = "Please verify your email first to access offers.";
+    statusEl.style.display = "block";
+    frame.style.display = "none";
+    return;
+  }
+  if (offerwallLoaded) return; // already fetched this session
+
+  try {
+    const { data } = await getOfferwallUrlFn();
+    frame.src = data.url;
+    frame.style.display = "block";
+    statusEl.style.display = "none";
+    offerwallLoaded = true;
+  } catch (e) {
+    statusEl.innerText = "Offers aren't available right now — please try again shortly.";
+  }
+}
+
+// ---------- NAVIGATION ----------
+document.getElementById("navHome").addEventListener("click", () => switchMainTab("home", "navHome"));
+document.getElementById("navGames").addEventListener("click", () => switchMainTab("games", "navGames"));
+function goToOffers() { switchMainTab("offers", "navOffers"); loadOfferwall(); }
+document.getElementById("offersPromo").addEventListener("click", goToOffers);
+
+// Keep the progress bar in sync with the balance, whichever code path changes it.
+function updateWithdrawProgress() {
+  const pts = parseInt(document.getElementById("userPoints").innerText, 10) || 0;
+  const pct = Math.min(100, (pts / MIN_WITHDRAW_POINTS) * 100);
+  document.getElementById("withdrawProgressBar").style.width = pct + "%";
+  document.getElementById("withdrawProgressText").innerText = pts >= MIN_WITHDRAW_POINTS
+    ? "You can withdraw now! Go to the Wallet tab."
+    : `${pts.toLocaleString()} / ${MIN_WITHDRAW_POINTS.toLocaleString()} points to your first withdrawal`;
+}
+new MutationObserver(updateWithdrawProgress).observe(document.getElementById("userPoints"), { childList: true, characterData: true, subtree: true });
+updateWithdrawProgress();
+
+document.getElementById("navOffers").addEventListener("click", () => { switchMainTab("offers", "navOffers"); loadOfferwall(); });
+document.getElementById("navPay").addEventListener("click", () => switchMainTab("payment", "navPay"));
+document.getElementById("navProfile").addEventListener("click", () => switchMainTab("profile", "navProfile"));
+</script>
+</body>
+</html>
